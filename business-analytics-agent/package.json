@@ -2,5 +2,5 @@
   "name": "branch-analytics-browser-checks",
   "private": true,
   "scripts": { "test:e2e": "node --test e2e/branch_analytics.test.cjs" },
-  "devDependencies": { "playwright": "1.62.1" }
+  "devDependencies": { "playwright": "1.63.0" }
 }

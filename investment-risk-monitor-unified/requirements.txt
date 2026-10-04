@@ -1,6 +1,6 @@
 APScheduler>=3.10,<4
 loguru>=0.7,<1
 PyMySQL[rsa]>=1.1,<2
-pandas>=2,<3
+pandas>=3.0.6,<4
 requests>=2.31,<3
 psycopg2-binary>=2.9,<3

@@ -29,6 +29,24 @@ flowchart LR
     Sandbox --> Storage[Configured object storage]
 ```
 
+## Ask the browser agent
+
+```bash
+python -m pip install -r requirements.txt
+python -m portfolio_demo.agent_server
+```
+
+Ask `What were revenue share and growth for BRANCH003 in 2025?` The browser displays
+streamed progress and tool evidence, including the missing baseline. This additional
+FastAPI app shares the SQLite repository and metric functions with the lightweight
+demo. Its default scripted model drives a real LangChain graph and tool execution;
+it supports one reporting year and an optional branch ID. Ambiguous requests prompt
+clarification. The original supervisor/specialist integration remains independently tested.
+
+Use `--live` with `OPENAI_API_KEY` and `DEMO_MODEL` to opt into a real model. See
+[development instructions](../docs/DEVELOPMENT.md#agent-browser-scenario) for scope,
+local access boundaries and verification. No live-model quality measurements are claimed.
+
 ## Offline example
 
 ```bash
@@ -56,11 +74,12 @@ The report tool returns a request/card descriptor; it does not generate a Word o
 For browser checks, install Node 22+ and pnpm, then run:
 
 ```bash
+python -m pip install -r requirements.txt
 pnpm install --frozen-lockfile
 pnpm exec playwright install chromium
 pnpm test:e2e
 ```
 
-The three browser cases cover mobile branch selection, failed requests/retry, and empty data through the local server. The browser remains independent of the live LLM service.
+The five browser cases cover mobile branch selection, failed requests/retry, empty data, streamed agent evidence and agent failure recovery. They use the real FastAPI/graph/tool/SQLite path with the scripted model. Failed CI runs retain traces, screenshots and server logs for seven days.
 
 The Docker image starts the FastAPI service as a nonroot user on port 8000 with external services disabled. Build with `docker build -t operations-agent .`, then run `docker run --rm -p 127.0.0.1:8000:8000 operations-agent`. Production use needs trusted authentication and data authorization. See [verification scope](../docs/VERIFICATION.md) for local/CI results and limitations.

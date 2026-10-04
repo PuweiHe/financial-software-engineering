@@ -6,7 +6,7 @@ import re
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-SKIP = {".git", ".venv", "__pycache__", ".pytest_cache"}
+SKIP = {".git", ".venv", "__pycache__", ".pytest_cache", "node_modules", "test-results", ".ruff_cache", ".mypy_cache"}
 patterns = {
     "private key": r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----",
     "literal provider key": r"\bsk-[A-Za-z0-9_-]{16,}",

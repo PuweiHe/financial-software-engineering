@@ -1,10 +1,11 @@
 name: Service and browser checks
-on: [push, pull_request, workflow_dispatch]
+on: [workflow_call, workflow_dispatch]
 permissions:
   contents: read
 jobs:
   agents:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -24,7 +25,7 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           cache: pip
-          cache-dependency-path: ${{ matrix.project }}/requirements.txt
+          cache-dependency-path: ${{ matrix.project }}/requirements*.txt
       - run: python -m pip install -r requirements.txt
       - if: matrix.project == 'wealth-agent'
         run: python -m pip install -r requirements-speech.txt
@@ -34,6 +35,7 @@ jobs:
         run: python evals/evaluate_contracts.py
   quality:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -43,6 +45,7 @@ jobs:
       - run: python scripts/check_quality.py
   browser:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: business-analytics-agent
@@ -58,19 +61,36 @@ jobs:
         with:
           version: '10'
       - run: pnpm install --frozen-lockfile
+      - run: pnpm audit
       - run: pnpm exec playwright install --with-deps chromium
+      - run: python -m pip install -r requirements.txt
       - run: pnpm test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-diagnostics
+          path: business-analytics-agent/test-results/
+          retention-days: 7
   containers:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     strategy:
+      fail-fast: false
       matrix:
         project: [wealth-agent, business-analytics-agent]
     steps:
       - uses: actions/checkout@v4
-      - name: Build service image and check its health endpoint
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.project }}
+          load: true
+          tags: portfolio-service
+          cache-from: type=gha,scope=${{ matrix.project }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.project }}
+      - name: Check the service health endpoint
         shell: bash
         run: |
-          docker build -t portfolio-service ${{ matrix.project }}
           docker run -d --name portfolio-service -p 8000:8000 portfolio-service
           trap 'docker logs portfolio-service; docker rm -f portfolio-service' EXIT
           # Docker may accept the connection before the application starts listening.

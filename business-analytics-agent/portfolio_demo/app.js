@@ -102,3 +102,81 @@ async function initialize() {
 }
 
 initialize();
+
+async function initializeAgent() {
+  const response = await fetch('/api/capabilities');
+  if (!response.ok) return;
+  const capabilities = await response.json();
+  if (!capabilities.agent) return;
+  document.querySelector('#agent-panel').hidden = false;
+  document.querySelector('#agent-mode').textContent = capabilities.mode === 'live'
+    ? 'Live model · synthetic SQLite data'
+    : 'Scripted model · real tool execution · synthetic SQLite data';
+}
+
+document.querySelector('#agent-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  const button = document.querySelector('#ask');
+  const status = document.querySelector('#agent-status');
+  const answer = document.querySelector('#agent-answer');
+  const evidence = document.querySelector('#agent-evidence');
+  button.disabled = true;
+  answer.textContent = '';
+  evidence.replaceChildren();
+  status.textContent = 'Starting request…';
+  let reader;
+  let completed = false;
+  try {
+    const response = await fetch('/api/agent/stream', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: document.querySelector('#question').value }),
+      signal: AbortSignal.timeout(35000),
+    });
+    if (!response.ok) throw new Error('Question could not be accepted');
+    reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      let boundary;
+      while ((boundary = buffer.search(/\r?\n\r?\n/)) !== -1) {
+        const frame = buffer.slice(0, boundary);
+        buffer = buffer.slice(boundary).replace(/^\r?\n\r?\n/, '');
+        const lines = frame.split(/\r?\n/);
+        const type = lines.find(line => line.startsWith('event:'))?.slice(6).trim();
+        const payload = lines.filter(line => line.startsWith('data:')).map(line => line.slice(5).trimStart()).join('\n');
+        if (!payload) continue;
+        const data = JSON.parse(payload);
+        if (type === 'status') status.textContent = data.message;
+        if (type === 'answer') answer.textContent = data.text;
+        if (type === 'report') {
+          evidence.replaceChildren();
+          const heading = document.createElement('p');
+          heading.textContent = `SQLite evidence · ${data.year} · total revenue ${data.total_revenue_million.toFixed(1)} million`;
+          evidence.append(heading);
+          const branches = data.selected_branch ? [data.selected_branch] : data.branches;
+          for (const branch of branches) {
+            const row = document.createElement('p');
+            row.textContent = `${branch.branch_id}: revenue ${branch.revenue_million.toFixed(1)} million; share ${branch.share === null ? 'Undefined' : percent(branch.share)}; growth ${percent(branch.growth)}.`;
+            evidence.append(row);
+          }
+        }
+        if (type === 'error') throw new Error(data.message);
+        if (type === 'done') { completed = true; status.textContent = 'Complete · synthetic data'; }
+      }
+    }
+    if (!completed) throw new Error('Connection ended before the request completed');
+  } catch (error) {
+    answer.textContent = '';
+    evidence.replaceChildren();
+    status.textContent = `Unable to complete: ${error.message}`;
+  } finally {
+    await reader?.cancel().catch(() => {});
+    button.disabled = false;
+  }
+});
+
+initializeAgent().catch(() => {});

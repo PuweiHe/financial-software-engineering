@@ -18,6 +18,18 @@
       <h1 id="page-title">From a business question to a traceable metric.</h1>
       <p>Explore branch revenue, system share, and year-over-year growth. Each number is read from a local SQLite table and calculated by a deterministic backend rule.</p>
     </section>
+    <section id="agent-panel" class="workspace" aria-label="Ask the analytics agent" hidden>
+      <h2>Ask about branch performance</h2>
+      <p id="agent-mode"></p>
+      <form id="agent-form">
+        <label for="question">Business question</label>
+        <input id="question" name="question" maxlength="500" required value="What were revenue share and growth for BRANCH003 in 2025?">
+        <button id="ask" type="submit">Ask agent</button>
+      </form>
+      <p id="agent-status" role="status" aria-live="polite"></p>
+      <p id="agent-answer"></p>
+      <div id="agent-evidence"></div>
+    </section>
     <section class="workspace" aria-label="Performance report">
       <div class="controls">
         <div><label for="year">Reporting year</label><select id="year" disabled></select></div>

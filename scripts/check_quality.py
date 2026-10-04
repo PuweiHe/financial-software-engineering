@@ -6,7 +6,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 FOCUSED = [
     'business-analytics-agent/metrics.py',
-    'business-analytics-agent/portfolio_demo/server.py',
+    'business-analytics-agent/portfolio_demo',
     'investment-risk-monitor-unified/db/query_adapter.py',
     'investment-risk-monitor-unified/dao',
     'investment-risk-monitor-unified/tests/test_dao_parameters.py',

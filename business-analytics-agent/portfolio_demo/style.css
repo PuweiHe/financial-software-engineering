@@ -264,3 +264,8 @@ footer {
 
 #retry { padding: 10px 16px; border: 1px solid #365f57; background: #fff; color: #173b37; cursor: pointer; }
 #retry:focus-visible { outline: 3px solid #a3c8bd; outline-offset: 2px; }
+/* Keep question entry usable on narrow screens. */
+#agent-panel { margin-bottom: 24px; }
+#agent-form { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+#question { flex: 1 1 280px; min-width: 0; padding: 12px; font: inherit; }
+#agent-evidence { overflow-wrap: anywhere; }

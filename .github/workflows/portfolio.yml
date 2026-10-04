@@ -1,10 +1,11 @@
 name: Offline portfolio checks
-on: [push, pull_request, workflow_dispatch]
+on: [workflow_call, workflow_dispatch]
 permissions:
   contents: read
 jobs:
   publishable-tree:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -15,6 +16,7 @@ jobs:
   project:
     name: ${{ matrix.project }} / Python ${{ matrix.python }}
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:

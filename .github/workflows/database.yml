@@ -1,17 +1,18 @@
 name: Database integration checks
-on: [push, pull_request, workflow_dispatch]
+on: [workflow_call, workflow_dispatch]
 permissions:
   contents: read
 jobs:
   database:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
         database: [mysql, pg]
     services:
       mysql:
-        image: mysql:8.4
+        image: ${{ matrix.database == 'mysql' && 'mysql:8.4' || '' }}
         env:
           MYSQL_DATABASE: risk_monitor_test
           MYSQL_USER: demo_user
@@ -22,7 +23,7 @@ jobs:
           --health-cmd="mysqladmin ping -h localhost -plocal_root_only"
           --health-interval=5s --health-timeout=5s --health-retries=30
       postgres:
-        image: postgres:16
+        image: ${{ matrix.database == 'pg' && 'postgres:16' || '' }}
         env:
           POSTGRES_DB: risk_monitor_test
           POSTGRES_USER: demo_user

@@ -1,0 +1,95 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 8 * * 1'
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  scope:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      services: ${{ steps.scope.outputs.services }}
+      database: ${{ steps.scope.outputs.database }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: scope
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: python3 scripts/ci_scope.py
+  offline:
+    uses: ./.github/workflows/portfolio.yml
+  services:
+    needs: scope
+    if: needs.scope.outputs.services == 'true'
+    uses: ./.github/workflows/engineering.yml
+  database:
+    needs: scope
+    if: needs.scope.outputs.database == 'true'
+    uses: ./.github/workflows/database.yml
+  secrets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Scan Git history for credentials
+        run: docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/repo:ro" zricethezav/gitleaks:v8.24.3 git /repo --redact --no-banner
+  dependencies:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [wealth-agent, business-analytics-agent, investment-risk-monitor-unified, '.']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install pip-audit==2.10.1
+      - name: Audit project dependencies
+        env:
+          PROJECT: ${{ matrix.project }}
+        run: |
+          args=()
+          for file in "$PROJECT"/requirements*.txt; do args+=(-r "$file"); done
+          python -m pip_audit "${args[@]}" --format json --output audit.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dependency-audit-${{ matrix.project }}
+          path: audit.json
+          retention-days: 7
+  gate:
+    name: CI gate
+    needs: [scope, offline, services, database, secrets, dependencies]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require every selected check to pass
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          python3 - <<'PY'
+          import json, os
+          jobs = json.loads(os.environ['RESULTS'])
+          optional = {'services', 'database'}
+          failed = [name for name, job in jobs.items()
+                    if job['result'] != 'success'
+                    and not (name in optional and job['result'] == 'skipped')]
+          if failed:
+              raise SystemExit('Checks did not pass: ' + ', '.join(failed))
+          PY

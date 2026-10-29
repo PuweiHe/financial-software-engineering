@@ -13,7 +13,23 @@ This guide points to code that a reviewer can inspect quickly. The data and runn
 
 Run it from `business-analytics-agent/` with `python3 -m portfolio_demo.server`, then open `http://127.0.0.1:8765/`. Choose 2025 and `BRANCH003`; the synthetic result is a 20% share and **No baseline** growth. This path runs locally without a model or credentials.
 
-## 2. Inspect the agent service boundaries
+## 2. Run the conversational path
+
+Start `python -m portfolio_demo.agent_server` after installing the business agent requirements.
+Ask `What were revenue share and growth for BRANCH003 in 2025?`.
+
+Follow [the FastAPI application](../business-analytics-agent/portfolio_demo/agent_server.py):
+`Question` validates input; `ReportArguments` constrains the model's tool arguments;
+`branch_report` reads SQLite through the shared repository; the graph emits SSE events;
+the [browser](../business-analytics-agent/portfolio_demo/app.js) renders evidence and clears it on failure.
+The sample returns 20% share and no growth baseline. Ask about both 2024 and 2025 to see clarification.
+
+The default scripted model is a narrow replay fixture. It establishes execution behavior,
+not language understanding. The original supervisor graph remains separately tested.
+[Eight service tests](../business-analytics-agent/service_tests/test_demo_agent.py) cover
+validation, ambiguity, missing data, provider errors and request boundaries.
+
+## 3. Inspect the agent service boundaries
 
 **Business request:** research a fund whose name may match more than one product, or compare products when one lacks a return history.
 
@@ -26,13 +42,13 @@ The synthetic cases do **not** measure LLM routing accuracy or prove that extern
 
 The separate [operations agent](../business-analytics-agent/agent/mutil_agent.py) routes branch lookup, operating metrics, calculation, and report-request tools. Its local browser demo demonstrates the business calculation and full-stack data path; it does not invoke this agent.
 
-## 3. Check persistence and concurrency
+## 4. Check persistence and concurrency
 
 The [risk monitor workflow](../investment-risk-monitor-unified/docs/CONFIGURATION_WORKFLOW.md) shows how a configured rule becomes a dated result. [Database integration tests](../investment-risk-monitor-unified/integration_tests/test_database.py) cover adapted import, result, and lease paths on MySQL and PostgreSQL. The [standalone lease example](../database-job-mutex/README.md) isolates the stale-owner release problem.
 
 Run `python3 scripts/check_all.py` at the repository root for offline checks. Read [verification scope](VERIFICATION.md) for what those checks establish and [contribution scope](CONTRIBUTIONS.md) for the distinction between internship work and public reconstructions.
 
-## 4. Inspect the reliability changes
+## 5. Inspect the reliability changes
 
 [Dependency-backed service tests](../wealth-agent/service_tests/) exercise real FastAPI routes and real LangChain graphs with scripted responses. Start with `test_graph.py`, then the timeout, cancellation and same-ID isolation cases. [Browser E2E tests](../business-analytics-agent/e2e/) verify failure recovery through the visible UI. [DAO tests](../investment-risk-monitor-unified/tests/test_dao_parameters.py) check SQL/value separation, while [batch tests](../investment-risk-monitor-unified/tests/test_query_adapter.py) check transactional rollback.
 

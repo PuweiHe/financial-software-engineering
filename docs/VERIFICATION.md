@@ -74,3 +74,12 @@ Docker and live database services are verified in GitHub Actions; consult the ru
 Live model/data APIs, Redis, speech provider, E2B and object storage remain unverified. Speech tests use a fake socket. Dependency pins describe a tested resolution, not immutable hashes or a security guarantee. Privacy scans cannot prove absence of all identifying information or clear previously published Git history. No production latency, user count, financial impact or live accuracy is asserted.
 
 The new browser agent has eight service tests covering SQL evidence, clarification, unavailable years, invalid model arguments, redacted provider failures, request validation, local access boundaries and request isolation. Its scripted model is a narrow replay fixture, not an evaluation of language understanding. See [development workflow](DEVELOPMENT.md) for local check levels and optional live mode.
+
+## Dependency maintenance — 2026-10-28
+
+The scheduled CI audit detected new advisories after the October 4 baseline.
+Updated certifi to 2026.10.19, langgraph-sdk to 0.4.6 and opentelemetry-api to
+1.45.1 in both agent lockfiles. Both locked service dependency sets passed
+pip-audit locally; combined installation passed pip check and all 41 agent
+service tests passed on Python 3.13. This targeted check does not replace
+Python 3.11, browser, Docker and database validation in the PR workflow.

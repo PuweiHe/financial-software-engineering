@@ -1,12 +1,31 @@
-# Financial Software Engineering Portfolio
+# Financial Systems & AI Agents
+
+**Puwei He · Backend-focused full-stack development · Applied agent engineering**
 
 [![CI](https://github.com/PuweiHe/financial-software-engineering/actions/workflows/ci.yml/badge.svg)](https://github.com/PuweiHe/financial-software-engineering/actions/workflows/ci.yml)
 
-This portfolio shows how I turn financial business questions into software: a runnable browser-to-API-to-SQL analytics path, domain agents that route research and operating-metric requests, and a configurable investment monitor with database and concurrency checks. The examples are generalized and use synthetic data so reviewers can inspect the implementation without customer systems.
+I translate financial business requirements into Python services, SQL-backed workflows and agent tools. My internship work spans institutional investment monitoring, internal fund research and operating-metric analysis. This repository makes those engineering decisions inspectable with sanitized code and runnable synthetic examples.
 
-**Start with working code:** [run the branch analytics demo](business-analytics-agent/README.md#try-the-full-stack-business-scenario) to trace one request through the UI, HTTP API, SQL, and business rules. Then use the [code review guide](docs/REVIEW_GUIDE.md) to inspect agent routing and risk-monitor persistence. The demo runs without credentials; the retained LLM agents need separately configured model and data services.
+| Review focus | Start here | What to look for |
+| --- | --- | --- |
+| Full-stack + agents | [Conversational analytics demo](docs/DEVELOPMENT.md#agent-browser-scenario) | A question becomes a validated tool call, a SQLite query and streamed evidence in the browser. |
+| Backend + databases | [Investment monitoring](investment-risk-monitor-unified/docs/CONFIGURATION_WORKFLOW.md) | Dated holdings, configurable rules, transaction boundaries and persisted outcomes. |
+| Agent orchestration | [Research agent](wealth-agent/agent/mutil_agent.py) | Supervisor/specialist routing, bounded execution and entity ambiguity. |
+| Reliability | [Concurrency example](database-job-mutex/) and [verification](docs/VERIFICATION.md) | Stale-owner protection, error handling and reproducible checks. |
 
-**Try the agent path:** [run the conversational browser demo](docs/DEVELOPMENT.md#agent-browser-scenario): question → LangChain tool call → validated arguments → SQLite evidence → SSE → browser. The default scripted model needs no credentials; optional live mode uses your configured model.
+**Five-minute review:** [follow the code](docs/REVIEW_GUIDE.md). **Experience and ownership:** [read the evidence-backed narrative](docs/EXPERIENCE.md). **Run locally:** use the commands below or the [agent setup](docs/DEVELOPMENT.md).
+
+```mermaid
+flowchart LR
+    Q[Business question] --> A[FastAPI + agent graph]
+    A --> V[Validated tool arguments]
+    V --> D[Parameterized SQLite query]
+    D --> M[Deterministic business metrics]
+    M --> S[SSE evidence events]
+    S --> U[Browser results and recovery states]
+```
+
+The conversational demo uses a scripted model by default and real graph/tool/database execution. Live model mode is optional. Public examples use synthetic records; the original domain-agent integrations require separately configured services.
 
 ## Start with a working product path
 
@@ -35,7 +54,7 @@ Choose 2025 and `BRANCH003`: the sample branch contributes 20% of annual revenue
 
 - **Agent reliability:** real async supervisor/specialist execution, validated entity extraction, request-local cards, explicit SSE errors and bounded calls. [Service tests](wealth-agent/service_tests/) use the actual orchestration graph with scripted model responses.
 - **Database correctness:** bound values across the risk DAOs, transactional batch writes and visible multi-dimension failures. [Regression tests](investment-risk-monitor-unified/tests/) exercise adversarial filters and rollback.
-- **Full-stack behavior:** typed metric rules, safe missing baselines, failure/retry states and [three browser E2E cases](business-analytics-agent/e2e/).
+- **Full-stack behavior:** typed metric rules, safe missing baselines, failure/retry states and [five browser E2E cases](business-analytics-agent/e2e/).
 - **Reviewable evidence:** 100 focused Python test methods, five browser tests and eight extraction-contract fixtures passed locally. These are not live-model accuracy or production-performance measurements. [Exact scope and commands](docs/VERIFICATION.md).
 
 The [engineering review](docs/ENGINEERING_REVIEW.md) contains the architecture, implementation decisions, remaining debt and interview discussion points. The [initial audit](docs/ENGINEERING_AUDIT.md) records the defects that motivated this revision.

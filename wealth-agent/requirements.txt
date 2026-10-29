@@ -2,7 +2,7 @@
 annotated-doc==0.0.5
 annotated-types==0.8.0
 anyio==4.15.1
-certifi==2026.7.22
+certifi==2026.10.19
 charset-normalizer==3.5.1
 click==8.5.0
 distro==1.9.0
@@ -25,10 +25,10 @@ langchain-protocol==0.0.19
 langgraph==1.2.6
 langgraph-checkpoint==4.2.0
 langgraph-prebuilt==1.1.0
-langgraph-sdk==0.4.5
+langgraph-sdk==0.4.6
 langsmith==0.14.1
 openai==2.54.0
-opentelemetry-api==1.45.0
+opentelemetry-api==1.45.1
 orjson==3.12.0
 ormsgpack==1.12.2
 packaging==26.3

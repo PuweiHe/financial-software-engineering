@@ -19,7 +19,7 @@ jobs:
       services: ${{ steps.scope.outputs.services }}
       database: ${{ steps.scope.outputs.database }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - id: scope
@@ -41,7 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Scan Git history for credentials
@@ -54,7 +54,7 @@ jobs:
       matrix:
         project: [wealth-agent, business-analytics-agent, investment-risk-monitor-unified, '.']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'

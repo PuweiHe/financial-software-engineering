@@ -55,7 +55,7 @@ jobs:
         project: [wealth-agent, business-analytics-agent, investment-risk-monitor-unified, '.']
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.11'
       - run: python -m pip install pip-audit==2.10.1
